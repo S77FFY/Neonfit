@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="app-repo" content="NeonFit">
-<meta name="app-version" content="1.0.11">
+<meta name="app-version" content="1.0.12">
 <meta name="theme-color" content="#02060f">
 <title>NEONFIT</title>
 <style>
@@ -79,7 +79,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 
 /* ---------- board ---------- */
 .boardwrap{display:flex;justify-content:center;align-items:center;flex:none;position:relative}
-#board{width:min(100%,520px,calc(100dvh - 312px));aspect-ratio:1/1;display:grid;
+#board{width:min(100%,520px,calc(100dvh - 344px));aspect-ratio:1/1;display:grid;
   grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
   border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);border-radius:10px;
   background:color-mix(in srgb,var(--ac) 3%,transparent);
@@ -265,6 +265,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 .bmc-tx{font-size:11px;letter-spacing:.2em;white-space:nowrap;color:var(--ac);text-shadow:0 0 12px var(--ac);
   padding-left:.2em}
 .lbl{font-size:10px;letter-spacing:.3em;opacity:.5;margin-top:24px}
+.tbtns{display:flex;flex-direction:column;gap:10px;margin-top:30px;width:min(80%,258px)}
+.tbtns .hbtn{width:100%;text-align:center;padding:16px;font-size:12px}
+.hbtn.hsm{font-size:10px;padding:6px 10px;letter-spacing:.14em}
 .hsv{font-size:52px;line-height:1.05;text-shadow:0 0 20px var(--ac);margin-top:4px}
 .tinfo{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:12px;opacity:.85}
 .tsep{opacity:.3}
@@ -347,7 +350,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
       <div class="wal" id="wallet"></div>
-      <button class="hbtn" id="shopBtn">SHOP</button>
+      <button class="hbtn hsm" id="shopBtn">SHOP</button>
+      <button class="hbtn hsm" id="quitBtn">RESTART</button>
     </div>
   </header>
 
@@ -365,7 +369,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   </div>
 </div>
 
-<div id="ver">v1.0.11</div>
+<div id="ver">v1.0.12</div>
 
 <div class="mod" id="kmod">
   <div class="mid" style="max-width:340px;width:100%;margin:0 auto">
@@ -395,10 +399,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
       <span id="tWal"></span><span class="tsep">|</span>
       <span id="tOwn">0/64 THEMES</span>
     </div>
-  </div>
-  <div class="row">
-    <button class="hbtn" id="tShop">SHOP</button>
-    <button class="hbtn buy" id="tStart">START GAME</button>
+    <div class="tbtns">
+      <button class="hbtn buy" id="tStart">START GAME</button>
+      <button class="hbtn" id="tShop">SHOP</button>
+    </div>
   </div>
 </div>
 
@@ -423,6 +427,20 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   </div>
 </div>
 
+<!-- CONFIRM RESTART -->
+<div class="mod" id="conf">
+  <div class="mid">
+    <div class="mt" style="font-size:15px">RESTART?</div>
+    <div class="sub" style="margin-top:20px">THIS GAME ENDS HERE</div>
+    <div class="big" id="cfScore">0</div>
+    <div class="sub" style="margin-bottom:0">BANKED TO YOUR WALLET</div>
+    <div class="tbtns">
+      <button class="hbtn buy" id="cfNo">KEEP PLAYING</button>
+      <button class="hbtn" id="cfYes">YES, RESTART</button>
+    </div>
+  </div>
+</div>
+
 <!-- GAME OVER -->
 <div class="mod" id="over">
   <div class="mh"><div class="mt">GAME OVER</div></div>
@@ -441,7 +459,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 
 <script>
 "use strict";
-const VERSION="1.0.11", KEY="neonfit.v1";
+const VERSION="1.0.12", KEY="neonfit.v1";
 
 /* =======================================================================
    THEMES — [name, months(0=any|[m…]), bg, gridline, accent, [b1,b2,b3], rainShape]
@@ -1252,12 +1270,14 @@ function showTitle(){
   paint();
   S.score=0;document.getElementById("score").textContent="0";
   over.classList.remove("on");shop.classList.remove("on");
+  document.getElementById("conf").classList.remove("on");
   titleEl.classList.add("on");
   updWallet();renderPups();
 }
 function newGame(){
   mode="play";
   titleEl.classList.remove("on");over.classList.remove("on");shop.classList.remove("on");
+  document.getElementById("conf").classList.remove("on");
   snap=null;mult=1;updMult();cancelPmode();
   S.board=new Array(64).fill(0);S.score=0;S.combo=0;
   const n=7+(Math.random()*6|0),used=new Set();
@@ -1266,15 +1286,20 @@ function newGame(){
   paint();document.getElementById("score").textContent="0";
   layout();renderPups();newSet();
 }
+/* fold the current run into best + wallet; used by game over and by restart */
+function bankRun(){
+  if(S.score>S.best)S.best=S.score;
+  S.points+=S.score;
+  const g=Math.floor(S.points/PPT);
+  S.tokens+=g;S.points-=g*PPT;
+  save();
+  return g;
+}
 function gameOver(){
   mode="over";
   clearTimeout(holdT);drag=null;cancelPmode();clearGhost();
   mult=1;updMult();
-  if(S.score>S.best)S.best=S.score;
-  S.points+=S.score;
-  const gained=Math.floor(S.points/PPT);
-  S.tokens+=gained;S.points-=gained*PPT;
-  save();
+  const gained=bankRun();
   document.getElementById("ovScore").textContent=S.score;
   document.getElementById("ovBest").textContent="BEST "+S.best;
   document.getElementById("ovEarn").innerHTML=
@@ -1282,6 +1307,19 @@ function gameOver(){
   over.classList.add("on");updWallet();
 }
 document.getElementById("tStart").onclick=newGame;
+const conf=document.getElementById("conf");
+document.getElementById("quitBtn").onclick=()=>{
+  if(mode!=="play")return;
+  cancelPmode();
+  document.getElementById("cfScore").textContent=S.score;
+  conf.classList.add("on");
+};
+document.getElementById("cfNo").onclick=()=>conf.classList.remove("on");
+document.getElementById("cfYes").onclick=()=>{
+  conf.classList.remove("on");
+  bankRun();
+  showTitle();
+};
 document.getElementById("tShop").onclick=()=>openShop("title");
 document.getElementById("ovAgain").onclick=newGame;
 document.getElementById("ovShop").onclick=()=>openShop("over");
