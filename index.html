@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="app-repo" content="NeonFit">
-<meta name="app-version" content="1.0.13">
+<meta name="app-version" content="1.0.15">
 <meta name="theme-color" content="#02060f">
 <title>NEONFIT</title>
 <style>
@@ -108,11 +108,14 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 @keyframes burstcell{0%{transform:scale(1);filter:brightness(1)}
   35%{transform:scale(1.28);filter:brightness(2.6)}100%{transform:scale(0);opacity:0}}
 
-#surge{position:absolute;top:-2px;left:50%;transform:translate(-50%,-50%);z-index:6;
-  font-size:26px;letter-spacing:.06em;pointer-events:none;opacity:0;transition:opacity .25s ease;
-  padding:2px 10px;border-radius:20px;background:color-mix(in srgb,var(--bg) 78%,transparent)}
-#surge.on{opacity:1;animation:sgpulse 1.2s ease-in-out infinite}
-@keyframes sgpulse{0%,100%{scale:1}50%{scale:1.09}}
+.mfloat{position:fixed;z-index:75;pointer-events:none;letter-spacing:.05em;white-space:nowrap;
+  will-change:transform,opacity;animation:mfly 1.35s cubic-bezier(.22,.85,.3,1) forwards}
+@keyframes mfly{
+  0%  {opacity:0;transform:translate(-50%,-50%) scale(.45)}
+  14% {opacity:1;transform:translate(-50%,-50%) scale(1.22)}
+  26% {opacity:1;transform:translate(-50%,-50%) scale(1)}
+  70% {opacity:.95}
+  100%{opacity:0;transform:translate(-50%,calc(-50% - var(--rise))) scale(.9)}}
 
 #flash{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;
   box-shadow:0 0 120px 30px var(--ac) inset}
@@ -293,6 +296,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   background:linear-gradient(135deg,var(--t1) 0 34%,var(--t2) 34% 67%,var(--t3) 67%);
   box-shadow:0 0 9px var(--t1);transition:inset .12s ease}
 .tt.lk>i{filter:grayscale(1) brightness(.34) contrast(.8);box-shadow:none}
+.tt.pad>i{filter:grayscale(1) brightness(.2) contrast(.7)}   /* out of season: dimmer still */
 .tt.own>i{inset:9%;box-shadow:0 0 12px var(--t1),0 0 0 1.5px rgba(255,255,255,.75)}
 .tt.eq>i{inset:7%;box-shadow:0 0 18px var(--t1),0 0 0 2px #fff}
 .tt.sel::after{content:"";position:absolute;inset:2%;border-radius:18%;
@@ -315,6 +319,22 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 .sh-lock{font-size:10px;letter-spacing:.14em;text-align:center;padding:10px;border-radius:8px;
   border:1px dashed color-mix(in srgb,var(--ac) 30%,transparent);opacity:.72}
 
+.svblk{border:1px solid color-mix(in srgb,var(--ac) 26%,transparent);border-radius:11px;padding:12px;
+  background:color-mix(in srgb,var(--ac) 5%,transparent)}
+.svh{font-size:11px;letter-spacing:.24em;color:var(--ac)}
+.svp{font-size:10px;line-height:1.5;opacity:.6;margin:7px 0 10px}
+.svcode{font-size:11px;letter-spacing:.06em;word-break:break-all;line-height:1.6;
+  border:1px dashed color-mix(in srgb,var(--ac) 34%,transparent);border-radius:8px;padding:10px;
+  -webkit-user-select:text;user-select:text;background:#0004}
+#svIn{width:100%;font:inherit;font-size:12px;letter-spacing:.04em;text-align:center;
+  color:var(--fg);background:color-mix(in srgb,var(--ac) 8%,transparent);
+  border:1px solid color-mix(in srgb,var(--ac) 40%,transparent);border-radius:9px;padding:12px 8px;
+  -webkit-user-select:text;user-select:text;touch-action:auto;outline:none}
+.svmsg{min-height:16px;margin-top:9px;font-size:10px;letter-spacing:.16em;text-align:center;opacity:0;
+  transition:opacity .2s ease}
+.svmsg.on{opacity:.95}
+.svmsg.no{color:#ff6b86}
+.svmsg.yes{color:var(--ac)}
 .held{display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 0 4px}
 .held .pup{animation:none}
 .held .pup svg{animation:none}
@@ -364,7 +384,6 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 
   <div class="boardwrap">
     <div id="board"></div>
-    <div id="surge"></div>
   </div>
 
   <div class="tray" id="tray">
@@ -374,7 +393,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   </div>
 </div>
 
-<div id="ver">v1.0.13</div>
+<div id="ver">v1.0.15</div>
 
 
 <!-- TITLE -->
@@ -410,6 +429,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   <div class="tabs">
     <button class="tab on" data-p="themes">THEMES</button>
     <button class="tab" data-p="power">POWER-UPS</button>
+    <button class="tab" data-p="save">SAVE</button>
   </div>
   <div class="pane" id="paneThemes">
     <div class="tgwrap"><div id="shopGrid"></div></div>
@@ -418,6 +438,23 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   <div class="pane" id="panePower" hidden>
     <div class="held" id="held"></div>
     <div class="boxes" id="boxes"></div>
+  </div>
+  <div class="pane" id="paneSave" hidden>
+    <div class="boxes" style="gap:14px">
+      <div class="svblk">
+        <div class="svh">YOUR CODE</div>
+        <div class="svp">Carries your chips, best score, power-ups and unlocked themes to another device or copy of the game.</div>
+        <div class="svcode" id="svCode">-</div>
+        <button class="hbtn" id="svCopy" style="width:100%;margin-top:9px">COPY CODE</button>
+      </div>
+      <div class="svblk">
+        <div class="svh">RESTORE</div>
+        <div class="svp">Paste a code to merge it in. Nothing is ever lost — the higher of the two is kept for every value.</div>
+        <input id="svIn" placeholder="PASTE CODE" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button class="hbtn buy" id="svGo" style="width:100%;margin-top:9px">RESTORE</button>
+        <div class="svmsg" id="svMsg"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -465,7 +502,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 
 <script>
 "use strict";
-const VERSION="1.0.13", KEY="neonfit.v1";
+const VERSION="1.0.15", KEY="neonfit.v1";
 
 /* =======================================================================
    THEMES — [name, months(0=any|[m…]), bg, gridline, accent, [b1,b2,b3], rainShape]
@@ -571,20 +608,52 @@ let mult=1;
 let snap=null;
 let pmode=null, pIdx=-1;
 
-function save(){try{localStorage.setItem(KEY,JSON.stringify(
-  {best:S.best,points:S.points,tokens:S.tokens,theme:S.theme,owned:S.owned,pups:S.pups,
-   used:S.used,rv:S.rv}));}catch(e){}}
-function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");
+/* KEY never changes between builds, so every version on the same host shares
+   one save. KEY2 is a mirror: if one write is torn, the other still has it. */
+const KEY2="neonfit.bak";
+function snapshot(){
+  return {best:S.best,points:S.points,tokens:S.tokens,theme:S.theme,
+          owned:S.owned,pups:S.pups,used:S.used,rv:S.rv,at:Date.now()};
+}
+function save(){
+  const j=JSON.stringify(snapshot());
+  try{localStorage.setItem(KEY,j);}catch(e){}
+  try{localStorage.setItem(KEY2,j);}catch(e){}
+}
+function readKey(k){try{const d=JSON.parse(localStorage.getItem(k)||"{}");
+  return (d&&typeof d==="object")?d:{};}catch(e){return {};}}
+/* take the better of the two copies field by field — progress can only go up */
+function mergeSaves(a,b){
+  const num=(x,y)=>Math.max(x|0,y|0);
+  const arr=(x,y)=>{const o=Array.isArray(x)?x:[],p=Array.isArray(y)?y:[];
+    return Array.from(new Set(o.concat(p)));};
+  const at=(a.at|0)>=(b.at|0)?a:b;              // newest wins where it is a choice
+  return {best:num(a.best,b.best),points:num(a.points,b.points),
+          tokens:num(a.tokens,b.tokens),
+          theme:(typeof at.theme==="number")?at.theme:-1,
+          owned:arr(a.owned,b.owned),
+          used:arr(a.used,b.used),
+          pups:Array.isArray(at.pups)?at.pups:[],
+          rv:num(a.rv,b.rv)};
+}
+function applySave(d){
   S.best=d.best|0;S.points=d.points|0;S.tokens=d.tokens|0;
   S.theme=(typeof d.theme==="number")?d.theme:-1;
-  S.owned=Array.isArray(d.owned)?d.owned:[];
-  S.used=Array.isArray(d.used)?d.used.filter(x=>typeof x==="string"):[];
-  S.pups=Array.isArray(d.pups)?d.pups.filter(p=>ICON[p]).slice(0,MAXPUP):[];
+  if(S.theme>=THEMES.length)S.theme=-1;
+  S.owned=(Array.isArray(d.owned)?d.owned:[]).filter(i=>Number.isInteger(i)&&i>=0&&i<THEMES.length);
+  S.used=(Array.isArray(d.used)?d.used:[]).filter(x=>typeof x==="string");
+  S.pups=(Array.isArray(d.pups)?d.pups:[]).filter(x=>ICON[x]).slice(0,MAXPUP);
   S.rv=d.rv|0;
+}
+function load(){try{
+  const d=mergeSaves(readKey(KEY),readKey(KEY2));
+  applySave(d);
   if(S.rv<1){                                  // one-off restock, applied once per device
     S.used=S.used.filter(k=>k!=="8475c01535e12407");
     S.rv=1;save();
-  }}catch(e){}}
+  }
+  save();                     // heal a missing mirror on first run of a new build
+  }catch(e){}}
 
 function theme(){return S.theme<0?BASE:THEMES[S.theme];}
 function applyTheme(){
@@ -1064,17 +1133,29 @@ function restoreSnap(){
 /* =======================================================================
    MULTIPLIER
    ===================================================================== */
-function bumpMult(){mult=Math.min(mult*2,MAXMULT);updMult();}
-function updMult(){
-  const el=document.getElementById("surge");
-  if(mult<2||mode!=="play"){el.classList.remove("on");boardEl.classList.remove("surge");return;}
-  el.classList.add("on");
-  boardEl.classList.toggle("surge",mult>=8);
-  el.textContent="\u00d7"+mult;
-  const k=Math.min(1,(Math.log2(mult)-1)/9);
-  el.style.color=`color-mix(in srgb,#ffffff ${Math.round(k*100)}%,var(--ac))`;
-  el.style.textShadow=`0 0 ${9+k*34}px currentColor, 0 0 ${5+k*64}px var(--ac)`;
-  el.style.fontSize=(22+k*22)+"px";
+function bumpMult(){
+  const was=mult;
+  mult=Math.min(mult*2,MAXMULT);
+  updMult();
+  if(mult>=2&&mode==="play")showMult(mult!==was);
+}
+/* the board keeps an ambient glow; the number itself is a moment, not a badge */
+function updMult(){boardEl.classList.toggle("surge",mult>=8&&mode==="play");}
+function showMult(){
+  const b=boardEl.getBoundingClientRect();
+  if(!b.width)return;
+  const k=Math.min(1,(Math.log2(mult)-1)/9);        // 0 at x2 -> 1 at x1024
+  const d=document.createElement("div");
+  d.className="mfloat";
+  d.textContent="\u00d7"+mult;
+  d.style.left=(b.left+b.width/2)+"px";
+  d.style.top=(b.top+b.height/2)+"px";
+  d.style.setProperty("--rise",(b.height/2+26)+"px");
+  d.style.fontSize=(34+k*42)+"px";
+  d.style.color=`color-mix(in srgb,#ffffff ${Math.round(k*100)}%,var(--ac))`;
+  d.style.textShadow=`0 0 ${14+k*40}px currentColor, 0 0 ${8+k*74}px var(--ac)`;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),1400);
 }
 
 /* =======================================================================
@@ -1127,6 +1208,7 @@ function addScore(n){S.score+=n;document.getElementById("score").textContent=S.s
 function floatPts(n,x,y){
   const d=document.createElement("div");
   d.className="pop-pts";d.textContent="+"+n;
+  d.style.animationDelay="0.16s";
   d.style.left=x+"px";d.style.top=y+"px";
   document.body.appendChild(d);
   setTimeout(()=>d.remove(),1000);
@@ -1365,6 +1447,20 @@ function openShop(from){
   shop.classList.add("on");
   updWallet();renderShop();renderBoxes();
 }
+document.getElementById("svCopy").onclick=()=>{
+  const c=makeCode();
+  const done=()=>svSay("COPIED TO CLIPBOARD",true);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(c).then(done).catch(()=>svSay("SELECT THE CODE AND COPY IT",false));
+  }else{
+    const r=document.createRange();r.selectNodeContents(document.getElementById("svCode"));
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(r);
+    svSay("SELECT THE CODE AND COPY IT",false);
+  }
+};
+document.getElementById("svGo").onclick=()=>restoreCode(document.getElementById("svIn").value);
+document.getElementById("svIn").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();restoreCode(e.target.value);}});
 document.getElementById("shopBtn").onclick=()=>{if(mode==="play"){cancelPmode();openShop("play");}};
 document.getElementById("shopClose").onclick=()=>{
   shop.classList.remove("on");
@@ -1376,6 +1472,8 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
   b.classList.add("on");
   document.getElementById("paneThemes").hidden=b.dataset.p!=="themes";
   document.getElementById("panePower").hidden=b.dataset.p!=="power";
+  document.getElementById("paneSave").hidden=b.dataset.p!=="save";
+  if(b.dataset.p==="save")renderSave();
 });
 
 function renderShop(){
@@ -1385,7 +1483,8 @@ function renderShop(){
     const cls=["tt"];
     if(own)cls.push("own");
     if(eq)cls.push("eq");
-    if(!own&&!av)cls.push("lk");
+    if(!own)cls.push("lk");            // colour is the reward for owning it
+    if(!own&&!av)cls.push("pad");      // and a padlock if it is out of season
     if(sel===i)cls.push("sel");
     h+=`<div class="${cls.join(" ")}" data-i="${i}" style="--t1:${t[5][0]};--t2:${t[5][1]};--t3:${t[5][2]}">`+
        `<i></i>${eq?"<b></b>":""}${(!own&&!av)?LOCK:""}</div>`;
@@ -1459,9 +1558,77 @@ function buyBox(i){
 }
 
 /* =======================================================================
+   TRANSFER CODE — moves a save between devices or between copies of the game
+   ===================================================================== */
+const B36=n=>Math.max(0,n|0).toString(36);
+function maskOwned(list){
+  let lo=0,hi=0;
+  for(const i of list){ if(i<32)lo|=(1<<i); else hi|=(1<<(i-32)); }
+  return ((lo>>>0).toString(16).padStart(8,"0"))+((hi>>>0).toString(16).padStart(8,"0"));
+}
+function unmaskOwned(hex){
+  const out=[];
+  if(!/^[0-9a-f]{16}$/i.test(hex||""))return out;
+  const lo=parseInt(hex.slice(0,8),16)>>>0, hi=parseInt(hex.slice(8),16)>>>0;
+  for(let i=0;i<32;i++){if(lo&(1<<i))out.push(i);if(hi&(1<<i))out.push(i+32);}
+  return out.filter(i=>i<THEMES.length);
+}
+const PUPC={swap:"s",undo:"u",line:"l",wipe:"w"};
+const PUPD={s:"swap",u:"undo",l:"line",w:"wipe"};
+function usedMask(){
+  let m=0;
+  for(const k of S.used)if(k in _R)m|=(1<<_R[k]);
+  return m;
+}
+function unusedMask(m){
+  const out=[];
+  for(const k in _R)if(m&(1<<_R[k]))out.push(k);
+  return out;
+}
+function makeCode(){
+  const body=["NF1",B36(S.best),B36(S.points),B36(S.tokens),
+    (S.theme<0?"z":B36(S.theme)),maskOwned(S.owned),
+    (S.pups.map(x=>PUPC[x]).join("")||"-"),B36(usedMask()),B36(S.rv)]
+    .join("-").toUpperCase();
+  return body+"-"+_d("nfc:"+body).slice(0,5).toUpperCase();
+}
+function readCode(txt){
+  const raw=String(txt||"").trim().toUpperCase().replace(/\s+/g,"");
+  const parts=raw.split("-");
+  if(parts.length!==10||parts[0]!=="NF1")return null;
+  const body=parts.slice(0,9).join("-");
+  if(_d("nfc:"+body).slice(0,5).toUpperCase()!==parts[9])return null;
+  const n=i=>parseInt(parts[i],36)||0;
+  return {best:n(1),points:n(2),tokens:n(3),
+    theme:(parts[4]==="Z"?-1:n(4)),
+    owned:unmaskOwned(parts[5].toLowerCase()),
+    pups:(parts[6]==="-"?[]:parts[6].toLowerCase().split("").map(c=>PUPD[c]).filter(Boolean)),
+    used:unusedMask(n(7)),rv:n(8)};
+}
+function renderSave(){
+  document.getElementById("svCode").textContent=makeCode();
+  const m=document.getElementById("svMsg");m.className="svmsg";m.textContent="";
+  document.getElementById("svIn").value="";
+}
+function svSay(t,ok){
+  const m=document.getElementById("svMsg");
+  m.textContent=t;m.className="svmsg on "+(ok?"yes":"no");
+}
+function restoreCode(txt){
+  const d=readCode(txt);
+  if(!d){svSay("CODE NOT RECOGNISED",false);return;}
+  const before=S.owned.length+"/"+S.tokens;
+  applySave(mergeSaves(snapshot(),{...d,at:Date.now()+1}));
+  save();applyTheme();updWallet();renderPups();renderShop();renderBoxes();
+  svSay("RESTORED \u00b7 "+S.owned.length+"/64 THEMES \u00b7 "+S.tokens+" CHIPS",true);
+  document.getElementById("svCode").textContent=makeCode();
+  document.getElementById("svIn").value="";
+}
+
+/* =======================================================================
    KEYWORDS
    ===================================================================== */
-const _d=(s)=>{
+function _d(s){
   let a=0x811c9dc5>>>0,b=(0x01000193^0x9e3779b9)>>>0;
   for(let i=0;i<s.length;i++){
     const c=s.charCodeAt(i);
@@ -1470,7 +1637,7 @@ const _d=(s)=>{
   }
   a=(a^(a>>>15))>>>0;b=(b^(b>>>13))>>>0;
   return a.toString(16).padStart(8,"0")+b.toString(16).padStart(8,"0");
-};
+}
 const _R={"8475c01535e12407":0,"5b750d7124a45da5":1,"61f6420f3a76bcc0":2};
 
 const kmod=document.getElementById("kmod"),kin=document.getElementById("kin"),
@@ -1553,8 +1720,11 @@ requestAnimationFrame(()=>{layout();showTitle();});
 new ResizeObserver(layout).observe(boardEl);
 document.addEventListener("gesturestart",e=>e.preventDefault());
 /* iOS raises a selection / look-up bubble on a long hold — not during a game */
-document.addEventListener("contextmenu",e=>{if(e.target!==kin)e.preventDefault();});
-document.addEventListener("selectstart",e=>{if(e.target!==kin)e.preventDefault();});
+const typable=e=>{const t=e.target;
+  return t===kin||t===document.getElementById("svIn")||t===document.getElementById("svCode")
+    ||(t&&t.closest&&t.closest("#paneSave"));};
+document.addEventListener("contextmenu",e=>{if(!typable(e))e.preventDefault();});
+document.addEventListener("selectstart",e=>{if(!typable(e))e.preventDefault();});
 document.addEventListener("dragstart",e=>e.preventDefault());
 document.addEventListener("dblclick",e=>e.preventDefault());
 </script>
