@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="app-repo" content="NeonFit">
-<meta name="app-version" content="1.0.3">
+<meta name="app-version" content="1.0.7">
 <meta name="theme-color" content="#02060f">
 <title>NEONFIT</title>
 <style>
@@ -58,7 +58,16 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   background:rgba(255,255,255,.4);filter:blur(2px)}
 .pup:nth-child(2){animation-delay:-1.5s,-2.2s}
 .pup:nth-child(3){animation-delay:-3s,-4.4s}
-.pup svg{width:22px;height:22px;display:block;filter:drop-shadow(0 0 5px var(--ac))}
+.pup svg{width:22px;height:22px;display:block;filter:drop-shadow(0 0 5px var(--ac));
+  animation:lenspup 4.6s ease-in-out infinite}
+.pup:nth-child(2) svg{animation-delay:-1.5s}
+.pup:nth-child(3) svg{animation-delay:-3s}
+@keyframes lenspup{
+  0%  {transform:scale(1.02,1.00) skew(0deg,0deg)}
+  22% {transform:scale(.96,1.08) skew(-4deg,1deg)}
+  45% {transform:scale(1.08,.95) skew(3.5deg,-1.4deg)}
+  68% {transform:scale(1.00,1.05) skew(-2.5deg,1.6deg)}
+  100%{transform:scale(1.02,1.00) skew(0deg,0deg)}}
 .pup.empty{border-style:dashed;opacity:.22;background:none;box-shadow:none;animation:none}
 .pup.act{scale:1.18;filter:brightness(1.7)}
 .pup.act::before{content:"";position:absolute;inset:-6px;border-radius:50%;
@@ -77,7 +86,6 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   overflow:hidden;position:relative;transition:box-shadow .4s ease}
 #board.surge{box-shadow:0 0 36px color-mix(in srgb,var(--ac) 40%,transparent),
              0 0 90px color-mix(in srgb,var(--ac) 22%,transparent) inset}
-#board.pick{cursor:crosshair}
 .cell{position:relative;border-right:1px solid color-mix(in srgb,var(--gl) 55%,transparent);
   border-bottom:1px solid color-mix(in srgb,var(--gl) 55%,transparent)}
 .cell:nth-child(8n){border-right:none}
@@ -148,21 +156,33 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 .slot.swaptarget .bub{animation:wob 5.2s ease-in-out infinite, drift 7.4s ease-in-out infinite, swapme .9s ease-in-out infinite}
 @keyframes swapme{0%,100%{filter:brightness(1)}50%{filter:brightness(1.85) saturate(1.4)}}
 
+/* ---------- piece inside the bubble: refracted, not blurred ---------- */
 .pc{position:relative;pointer-events:none}
-.slot .pc{filter:blur(1.5px) saturate(1.15);animation:float 5.2s ease-in-out infinite;transition:filter .16s ease}
+.slot .pc{
+  filter:saturate(1.22) contrast(1.05);
+  animation:lens 5.2s ease-in-out infinite;
+  transition:rotate .24s cubic-bezier(.2,1.35,.4,1), scale .24s cubic-bezier(.2,1.35,.4,1), filter .16s ease}
 .slot:nth-child(2) .pc{animation-delay:-1.7s}
 .slot:nth-child(3) .pc{animation-delay:-3.4s}
-@keyframes float{0%,100%{transform:translate(0,0)}25%{transform:translate(2px,-5px)}
-  50%{transform:translate(-1px,-8px)}75%{transform:translate(-3px,-3px)}}
-.slot.hold .pc{filter:blur(.5px) saturate(1.3) brightness(1.2)}
-.pc.drag{position:fixed;left:0;top:0;z-index:60;animation:none;filter:drop-shadow(0 8px 20px rgba(0,0,0,.7))}
+/* squashes and stretches exactly where the bubble wall deforms */
+@keyframes lens{
+  0%  {transform:translate(0,0)     scale(1.03,1.01) skew(0deg,0deg)}
+  22% {transform:translate(2px,-5px) scale(.96,1.10) skew(-4.5deg,1.6deg)}
+  45% {transform:translate(-1px,-8px) scale(1.09,.94) skew(3.8deg,-2.1deg)}
+  68% {transform:translate(-3px,-3px) scale(1.00,1.06) skew(-2.6deg,2.3deg)}
+  100%{transform:translate(0,0)     scale(1.03,1.01) skew(0deg,0deg)}}
+.slot.hold .pc{animation-duration:1.5s;filter:saturate(1.35) brightness(1.3) contrast(1.1)}
+.pc.drag{position:fixed;left:0;top:0;z-index:60;animation:none;transition:none;
+  filter:drop-shadow(0 8px 20px rgba(0,0,0,.7))}
 .pcell{position:absolute}
 .pcell>b{position:absolute;inset:8%;border-radius:16%;display:block}
 .pc[data-c="1"] .pcell>b{background:var(--b1);box-shadow:0 0 10px var(--b1),0 0 3px #fff8 inset}
 .pc[data-c="2"] .pcell>b{background:var(--b2);box-shadow:0 0 10px var(--b2),0 0 3px #fff8 inset}
 .pc[data-c="3"] .pcell>b{background:var(--b3);box-shadow:0 0 10px var(--b3),0 0 3px #fff8 inset}
-.slot.spin .pc{animation:spin .22s ease}
-@keyframes spin{from{rotate:-90deg;scale:.86}to{rotate:0deg;scale:1}}
+/* wet glass highlight, only while the piece is behind the bubble wall */
+.slot .pc .pcell>b{background-image:linear-gradient(155deg,rgba(255,255,255,.34) 0%,
+  rgba(255,255,255,.06) 38%,transparent 62%)}
+.pc.drag .pcell>b{background-image:none}
 
 .pop-pts{position:fixed;z-index:70;pointer-events:none;font-size:22px;color:#fff;
   text-shadow:0 0 14px var(--ac);animation:fly 1s ease-out forwards}
@@ -170,7 +190,23 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   20%{transform:translate(-50%,-60%) scale(1.15);opacity:1}
   100%{transform:translate(-50%,-160%) scale(1);opacity:0}}
 
-#ver{position:fixed;right:7px;bottom:4px;z-index:5;font-size:9px;letter-spacing:.1em;opacity:.28;pointer-events:none}
+#ver{position:fixed;right:7px;bottom:4px;z-index:90;font-size:9px;letter-spacing:.1em;opacity:.28;
+  pointer-events:none;transition:opacity .2s ease,text-shadow .2s ease}
+#ver.arm{opacity:.9;text-shadow:0 0 10px var(--ac)}
+#vhot{position:fixed;left:0;top:0;width:66px;height:66px;z-index:95}
+
+/* ---------- keyword entry ---------- */
+#kin{width:100%;font:inherit;font-size:15px;letter-spacing:.22em;text-align:center;text-transform:uppercase;
+  color:var(--fg);background:color-mix(in srgb,var(--ac) 8%,transparent);
+  border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);border-radius:10px;padding:14px 10px;
+  -webkit-user-select:text;user-select:text;touch-action:auto;outline:none;
+  box-shadow:0 0 16px color-mix(in srgb,var(--ac) 18%,transparent) inset}
+#kin:focus{border-color:var(--ac);box-shadow:0 0 22px color-mix(in srgb,var(--ac) 32%,transparent) inset}
+#kmsg{min-height:20px;margin-top:14px;font-size:11px;letter-spacing:.2em;text-align:center;opacity:0;
+  transition:opacity .2s ease}
+#kmsg.on{opacity:.9}
+#kmsg.no{color:#ff6b86}
+#kmsg.yes{color:var(--ac);text-shadow:0 0 12px var(--ac)}
 
 /* ---------- modals ---------- */
 .mod{position:fixed;inset:0;z-index:80;background:color-mix(in srgb,var(--bg) 90%,#000);
@@ -192,6 +228,25 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   text-shadow:0 0 18px var(--ac),0 0 46px color-mix(in srgb,var(--ac) 55%,transparent);
   padding-left:.24em;animation:pulseglow 3.4s ease-in-out infinite}
 @keyframes pulseglow{0%,100%{opacity:.92}50%{opacity:1;filter:brightness(1.18)}}
+/* ---------- buy chips ---------- */
+.bmc{display:flex;flex-direction:column;align-items:center;gap:13px;margin-top:22px;
+  text-decoration:none;color:var(--fg);padding:16px 26px;border-radius:16px;
+  border:1px solid color-mix(in srgb,var(--ac) 32%,transparent);
+  background:color-mix(in srgb,var(--ac) 6%,transparent);
+  box-shadow:0 0 22px color-mix(in srgb,var(--ac) 14%,transparent) inset;
+  transition:scale .16s ease,background .2s ease,border-color .2s ease}
+.bmc:active{scale:.96;background:color-mix(in srgb,var(--ac) 16%,transparent);
+  border-color:color-mix(in srgb,var(--ac) 65%,transparent)}
+.bmc-st{display:flex;align-items:center;justify-content:center;height:56px}
+.bmc-st .chip.big{width:52px;height:52px;vertical-align:0;
+  animation:chipbob 3.6s ease-in-out infinite}
+.bmc-st .chip.big::before{inset:7px;border-width:3px}
+.bmc-st .chip.big:nth-child(1){margin-right:-17px;z-index:1;rotate:-13deg;animation-delay:-.5s}
+.bmc-st .chip.big:nth-child(2){z-index:3;scale:1.1}
+.bmc-st .chip.big:nth-child(3){margin-left:-17px;z-index:2;rotate:12deg;animation-delay:-1.9s}
+@keyframes chipbob{0%,100%{translate:0 0}50%{translate:0 -5px}}
+.bmc-tx{font-size:13px;letter-spacing:.28em;color:var(--ac);text-shadow:0 0 12px var(--ac);
+  padding-left:.28em}
 .lbl{font-size:10px;letter-spacing:.3em;opacity:.5;margin-top:24px}
 .hsv{font-size:52px;line-height:1.05;text-shadow:0 0 20px var(--ac);margin-top:4px}
 .tinfo{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:12px;opacity:.85}
@@ -235,9 +290,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 .sh-lock{font-size:10px;letter-spacing:.14em;text-align:center;padding:10px;border-radius:8px;
   border:1px dashed color-mix(in srgb,var(--ac) 30%,transparent);opacity:.72}
 
-/* ---------- bundles ---------- */
 .held{display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 0 4px}
 .held .pup{animation:none}
+.held .pup svg{animation:none}
 .boxes{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;
   display:flex;flex-direction:column;gap:8px;padding:6px 0 16px}
 .box{border:1px solid color-mix(in srgb,var(--ac) 26%,transparent);border-radius:11px;padding:10px 11px;
@@ -249,7 +304,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 .box .bi svg{width:17px;height:17px;filter:drop-shadow(0 0 4px var(--ac))}
 .box .bn{flex:1;min-width:0}
 .box .bn u{display:block;font-size:12px;letter-spacing:.14em;text-decoration:none}
-.box .bn s{display:block;font-size:10px;opacity:.6;text-decoration:none;margin-top:3px;
+.box .bn s{font-size:10px;opacity:.6;text-decoration:none;margin-top:3px;
   display:flex;align-items:center;gap:4px}
 .box .hbtn{flex:none;font-size:10px;padding:9px 11px}
 
@@ -293,13 +348,31 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
   </div>
 </div>
 
-<div id="ver">v1.0.3</div>
+<div id="ver">v1.0.7</div>
+<div id="vhot"></div>
+
+<div class="mod" id="kmod">
+  <div class="mid" style="max-width:340px;width:100%;margin:0 auto">
+    <div class="mt" style="font-size:13px;margin-bottom:18px">KEYWORD</div>
+    <input id="kin" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="24">
+    <div id="kmsg"></div>
+  </div>
+  <div class="row">
+    <button class="hbtn" id="kcancel">CANCEL</button>
+    <button class="hbtn buy" id="kok">ENTER</button>
+  </div>
+</div>
 
 <!-- TITLE -->
 <div class="mod on" id="title">
   <div class="mid">
     <div class="tbrand">NEONFIT</div>
-    <div class="sub" style="margin-top:12px">8 &times; 8 &nbsp;BLOCK FIT</div>
+    <a class="bmc" href="https://buymeacoffee.com/benstiffi" target="_blank" rel="noopener noreferrer">
+      <span class="bmc-st">
+        <span class="chip b big"></span><span class="chip p big"></span><span class="chip b big"></span>
+      </span>
+      <span class="bmc-tx">BUY CHIPS</span>
+    </a>
     <div class="lbl">HIGH SCORE</div>
     <div class="hsv" id="tBest">0</div>
     <div class="tinfo">
@@ -324,12 +397,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
     <button class="tab on" data-p="themes">THEMES</button>
     <button class="tab" data-p="power">POWER-UPS</button>
   </div>
-
   <div class="pane" id="paneThemes">
     <div class="tgwrap"><div id="shopGrid"></div></div>
     <div class="sheet" id="sheet"></div>
   </div>
-
   <div class="pane" id="panePower" hidden>
     <div class="held" id="held"></div>
     <div class="boxes" id="boxes"></div>
@@ -354,7 +425,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px;pad
 
 <script>
 "use strict";
-const VERSION="1.0.3", KEY="neonfit.v1";
+const VERSION="1.0.7", KEY="neonfit.v1";
 
 /* =======================================================================
    THEMES — [name, months(0=any|[m…]), bg, gridline, accent, [b1,b2,b3], rainShape]
@@ -428,10 +499,9 @@ const THEMES=[
 ];
 const COST=i=>Math.round(35*Math.pow(1.085,i)/5)*5;
 const MONTHS=["","JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-const PPT=50, BLACK=25, MAXPUP=3;
+const PPT=50, BLACK=25, MAXPUP=3, MAXMULT=1024;
 const LOCK='<span class="lk-i"><svg viewBox="0 0 24 24"><path d="M7.2 10.5V7.2a4.8 4.8 0 0 1 9.6 0v3.3" fill="none" stroke="currentColor" stroke-width="2.6"/><rect x="4.2" y="10" width="15.6" height="11" rx="2.6" fill="currentColor"/></svg></span>';
 
-/* ---------- power-up icons (no labels, figure them out) ---------- */
 const SVG=(d)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICON={
   swap: SVG('<path d="M3.5 9h13l-3.6-3.6M20.5 15h-13l3.6 3.6"/>'),
@@ -439,35 +509,35 @@ const ICON={
   line: SVG('<rect x="2.6" y="4.4" width="5.2" height="5.2" rx="1.2"/><rect x="9.4" y="4.4" width="5.2" height="5.2" rx="1.2"/><rect x="16.2" y="4.4" width="5.2" height="5.2" rx="1.2"/><path d="M2 15.6h20" stroke-width="2.6"/><path d="M6.5 19.6h11" opacity=".45"/>'),
   wipe: SVG('<path d="M12 2.6v4M12 17.4v4M2.6 12h4M17.4 12h4M5.4 5.4l2.8 2.8M15.8 15.8l2.8 2.8M18.6 5.4l-2.8 2.8M8.2 15.8l-2.8 2.8"/><circle cx="12" cy="12" r="3.1"/>')
 };
-/* ---------- bundles — none contains every type ---------- */
 const BOXES=[
-  {n:"SMALL BOX",  items:["swap","swap"],          cost:120},
-  {n:"SAFE BOX",   items:["undo","undo"],          cost:200},
-  {n:"CUT BOX",    items:["line","swap"],          cost:260},
-  {n:"RESCUE BOX", items:["undo","line"],          cost:340},
-  {n:"TRIO BOX",   items:["swap","line","undo"],   cost:620},
-  {n:"BLANK BOX",  items:["wipe"],                 cost:780},
-  {n:"HEAVY BOX",  items:["wipe","line"],          cost:1040},
-  {n:"VAULT BOX",  items:["wipe","undo"],          cost:1180}
+  {n:"SMALL BOX",  items:["swap","swap"],        cost:120},
+  {n:"SAFE BOX",   items:["undo","undo"],        cost:200},
+  {n:"CUT BOX",    items:["line","swap"],        cost:260},
+  {n:"RESCUE BOX", items:["undo","line"],        cost:340},
+  {n:"TRIO BOX",   items:["swap","line","undo"], cost:620},
+  {n:"BLANK BOX",  items:["wipe"],               cost:780},
+  {n:"HEAVY BOX",  items:["wipe","line"],        cost:1040},
+  {n:"VAULT BOX",  items:["wipe","undo"],        cost:1180}
 ];
 
 /* =======================================================================
    STATE
    ===================================================================== */
 const N=8;
-let S={board:new Array(64).fill(0),score:0,best:0,points:0,tokens:0,theme:-1,owned:[],combo:0,pups:[]};
+let S={board:new Array(64).fill(0),score:0,best:0,points:0,tokens:0,theme:-1,owned:[],combo:0,pups:[],used:[]};
 let pieces=[null,null,null];
 let mode="title", shopFrom="title";
-let surgeOn=false, mult=1;
-let snap=null;                 // one-step undo snapshot
-let pmode=null, pIdx=-1;       // active power-up targeting mode
+let mult=1;
+let snap=null;
+let pmode=null, pIdx=-1;
 
 function save(){try{localStorage.setItem(KEY,JSON.stringify(
-  {best:S.best,points:S.points,tokens:S.tokens,theme:S.theme,owned:S.owned,pups:S.pups}));}catch(e){}}
+  {best:S.best,points:S.points,tokens:S.tokens,theme:S.theme,owned:S.owned,pups:S.pups,used:S.used}));}catch(e){}}
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");
   S.best=d.best|0;S.points=d.points|0;S.tokens=d.tokens|0;
   S.theme=(typeof d.theme==="number")?d.theme:-1;
   S.owned=Array.isArray(d.owned)?d.owned:[];
+  S.used=Array.isArray(d.used)?d.used.filter(x=>typeof x==="string"):[];
   S.pups=Array.isArray(d.pups)?d.pups.filter(p=>ICON[p]).slice(0,MAXPUP):[];}catch(e){}}
 
 function theme(){return S.theme<0?BASE:THEMES[S.theme];}
@@ -539,14 +609,14 @@ const rain=(()=>{
   function tick(){
     cx.clearRect(0,0,W,H);
     cx.globalCompositeOperation="lighter";
-    const boost=surgeOn?Math.min(2.4,1+Math.log2(mult)*.16):1;
+    const lv=Math.log2(mult), boost=1+lv*.16, bright=1+lv*.06;
     for(const s of streams){
       s.y+=s.sp*1.7*boost;
       if(s.y-s.len*s.gap>H+40){s.y=-Math.random()*H*.6;s.sh=Math.random()<.72?shape:SH[Math.random()*SH.length|0];s.sp=.28+Math.random()*.85;}
       for(let k=0;k<s.len;k++){
         const y=s.y-k*s.gap;if(y<-30||y>H+30)continue;
         const head=k===0;
-        cx.globalAlpha=(head?.85:Math.max(0,.5*(1-k/s.len)))*.55*(surgeOn?1.35:1);
+        cx.globalAlpha=Math.min(1,(head?.85:Math.max(0,.5*(1-k/s.len)))*.55*bright);
         const c=head?col[2]:col[k%2?0:1];
         cx.fillStyle=c;cx.strokeStyle=c;
         draw(s.sh,s.x,y,s.sz*(head?1.12:1));
@@ -574,7 +644,7 @@ function paint(){for(let i=0;i<64;i++)cells[i].dataset.v=S.board[i];}
 function clearGhost(){for(const c of cells)c.classList.remove("gho","bad");}
 
 /* =======================================================================
-   PIECES
+   PIECE GEOMETRY
    ===================================================================== */
 const SHAPES=[
  [[1]],[[1,1]],[[1,1,1]],[[1,1,1,1]],[[1,1,1,1,1]],
@@ -594,22 +664,97 @@ function pick(){
 function rot(m){const R=m.length,C=m[0].length,o=[];
   for(let c=0;c<C;c++){const row=[];for(let r=R-1;r>=0;r--)row.push(m[r][c]);o.push(row);}return o;}
 function cellsOf(m){let n=0;for(const r of m)for(const v of r)if(v)n++;return n;}
-function canPlace(m,r0,c0){
+
+function canPlaceOn(bd,m,r0,c0){
   for(let r=0;r<m.length;r++)for(let c=0;c<m[0].length;c++){
     if(!m[r][c])continue;
     const R=r0+r,C=c0+c;
     if(R<0||C<0||R>=N||C>=N)return false;
-    if(S.board[R*N+C])return false;
+    if(bd[R*N+C])return false;
   }
   return true;
 }
-function fits(m){
+function canPlace(m,r0,c0){return canPlaceOn(S.board,m,r0,c0);}
+function fitsOn(bd,m){
   let t=m;
   for(let k=0;k<4;k++){
-    for(let r=0;r<=N-t.length;r++)for(let c=0;c<=N-t[0].length;c++)if(canPlace(t,r,c))return true;
+    for(let r=0;r<=N-t.length;r++)for(let c=0;c<=N-t[0].length;c++)if(canPlaceOn(bd,t,r,c))return true;
     t=rot(t);
   }
   return false;
+}
+function fits(m){return fitsOn(S.board,m);}
+function applyOn(bd,m,r0,c0){
+  const nb=bd.slice();
+  for(let r=0;r<m.length;r++)for(let c=0;c<m[0].length;c++)
+    if(m[r][c])nb[(r0+r)*N+(c0+c)]=1;
+  return nb;
+}
+function completesOn(bd,m,r0,c0){
+  const nb=applyOn(bd,m,r0,c0);
+  for(let r=r0;r<r0+m.length;r++){
+    if(r<0||r>=N)continue;
+    let f=true;for(let c=0;c<N;c++)if(!nb[r*N+c]){f=false;break;}
+    if(f)return true;
+  }
+  for(let c=c0;c<c0+m[0].length;c++){
+    if(c<0||c>=N)continue;
+    let f=true;for(let r=0;r<N;r++)if(!nb[r*N+c]){f=false;break;}
+    if(f)return true;
+  }
+  return false;
+}
+function clearMove(bd,m){
+  let t=m;
+  for(let k=0;k<4;k++){
+    for(let r=0;r<=N-t.length;r++)for(let c=0;c<=N-t[0].length;c++)
+      if(canPlaceOn(bd,t,r,c)&&completesOn(bd,t,r,c))return true;
+    t=rot(t);
+  }
+  return false;
+}
+function clearMove2(bd,ms,budget){
+  for(let a=0;a<ms.length;a++){
+    let t=ms[a];
+    for(let k=0;k<4;k++){
+      for(let r=0;r<=N-t.length;r++)for(let c=0;c<=N-t[0].length;c++){
+        if(!canPlaceOn(bd,t,r,c))continue;
+        if(--budget.n<0)return false;
+        const nb=applyOn(bd,t,r,c);
+        for(let b=0;b<ms.length;b++){
+          if(b===a)continue;
+          if(clearMove(nb,ms[b]))return true;
+        }
+      }
+      t=rot(t);
+    }
+  }
+  return false;
+}
+function clearingShapes(bd){
+  const out=[];
+  for(const s of SHAPES)if(clearMove(bd,s))out.push(s);
+  return out;
+}
+
+/* =======================================================================
+   DEALING — every set of 3 should be able to make at least one line
+   ===================================================================== */
+function dealSet(){
+  const bd=S.board;
+  let set=[pick(),pick(),pick()];
+  if(set.some(m=>clearMove(bd,m)))return set;
+  const able=clearingShapes(bd);
+  if(able.length){
+    const j=Math.random()*3|0;
+    set[j]=able[Math.random()*able.length|0].map(r=>r.slice());
+    return set;
+  }
+  for(let t=0;t<6;t++){
+    if(clearMove2(bd,set,{n:500}))return set;
+    set=[pick(),pick(),pick()];
+  }
+  return set;
 }
 
 /* =======================================================================
@@ -641,11 +786,12 @@ function drawPiece(i,cell){
 }
 function clearTray(){
   pieces=[null,null,null];
-  slots.forEach((s,i)=>{s.classList.add("empty");s.classList.remove("pop","hold","spin","swaptarget");
+  slots.forEach((s,i)=>{s.classList.add("empty");s.classList.remove("pop","hold","swaptarget");
     s._st=null;drawPiece(i);});
 }
 function newSet(){
-  for(let i=0;i<3;i++)pieces[i]={m:pick(),col:1+(Math.random()*3|0)};
+  const set=dealSet();
+  for(let i=0;i<3;i++)pieces[i]={m:set[i],col:1+(Math.random()*3|0)};
   slots.forEach((s,i)=>{s.classList.remove("empty","pop","hold");drawPiece(i);});
   checkOver();
 }
@@ -682,17 +828,28 @@ slots.forEach(slot=>{
   slot.addEventListener("pointerup",end);
   slot.addEventListener("pointercancel",end);
 });
+/* rotation uses the individual rotate/scale properties so it layers over
+   the lens distortion instead of replacing it */
 function rotate(i){
   if(!pieces[i])return;
   pieces[i].m=rot(pieces[i].m);
   drawPiece(i);
-  const s=slots[i];s.classList.remove("spin");void s.offsetWidth;s.classList.add("spin");
+  const el=slots[i].querySelector(".pc");
+  el.style.transition="none";
+  el.style.rotate="-90deg";
+  el.style.scale="0.84";
+  requestAnimationFrame(()=>{
+    el.style.transition="";
+    el.style.rotate="";
+    el.style.scale="";
+  });
 }
 function burst(slot,st,x,y){
   const i=st.i;if(!pieces[i]||mode!=="play")return;
   slot.classList.remove("hold");slot.classList.add("pop");
   const el=slot.querySelector(".pc");
   drawPiece(i,CELL);
+  el.style.rotate="";el.style.scale="";
   el.classList.add("drag");
   drag={slot,i,el,w:pieces[i].m[0].length*CELL,h:pieces[i].m.length*CELL};
   moveDrag(x,y);
@@ -728,20 +885,21 @@ function drop(){
    SNAPSHOT / UNDO
    ===================================================================== */
 function takeSnap(){
-  snap={board:S.board.slice(),score:S.score,combo:S.combo,surgeOn,mult,
+  snap={board:S.board.slice(),score:S.score,combo:S.combo,mult,
     pieces:pieces.map(p=>p?{m:p.m.map(r=>r.slice()),col:p.col}:null)};
 }
 function restoreSnap(){
   if(!snap)return false;
-  S.board=snap.board.slice();S.score=snap.score;S.combo=snap.combo;
-  surgeOn=snap.surgeOn;mult=snap.mult;
+  S.board=snap.board.slice();S.score=snap.score;S.combo=snap.combo;mult=snap.mult;
   pieces=snap.pieces.map(p=>p?{m:p.m.map(r=>r.slice()),col:p.col}:null);
   cells.forEach(c=>c.classList.remove("clr"));
-  paint();updSurge();
+  paint();updMult();
   document.getElementById("score").textContent=S.score;
   slots.forEach((s,i)=>{
-    s.classList.remove("pop","hold","spin");
+    s.classList.remove("pop","hold");
     s.classList.toggle("empty",!pieces[i]);
+    const el=s.querySelector(".pc");
+    el.classList.remove("drag");el.style.transform="";el.style.rotate="";el.style.scale="";
     drawPiece(i);
   });
   snap=null;
@@ -749,27 +907,25 @@ function restoreSnap(){
 }
 
 /* =======================================================================
-   PLACE / CLEAR / SCORE / SURGE
+   MULTIPLIER
    ===================================================================== */
-function applySurge(pts){
-  if(!surgeOn)return pts;
-  const out=pts*mult;
-  mult=Math.min(mult*2,1024);
-  updSurge();
-  return out;
-}
-function endSurge(){if(surgeOn){surgeOn=false;mult=1;updSurge();}}
-function startSurge(){surgeOn=true;mult=2;updSurge();}
-function updSurge(){
+function bumpMult(){mult=Math.min(mult*2,MAXMULT);updMult();}
+function resetMult(){if(mult!==1){mult=1;updMult();}}
+function updMult(){
   const el=document.getElementById("surge");
-  if(!surgeOn||mode!=="play"){el.classList.remove("on");boardEl.classList.remove("surge");return;}
-  el.classList.add("on");boardEl.classList.add("surge");
+  if(mult<2||mode!=="play"){el.classList.remove("on");boardEl.classList.remove("surge");return;}
+  el.classList.add("on");
+  boardEl.classList.toggle("surge",mult>=8);
   el.textContent="\u00d7"+mult;
-  const k=Math.min(1,Math.log2(mult)/10);
+  const k=Math.min(1,(Math.log2(mult)-1)/9);
   el.style.color=`color-mix(in srgb,#ffffff ${Math.round(k*100)}%,var(--ac))`;
   el.style.textShadow=`0 0 ${9+k*34}px currentColor, 0 0 ${5+k*64}px var(--ac)`;
   el.style.fontSize=(22+k*22)+"px";
 }
+
+/* =======================================================================
+   PLACE / CLEAR / SCORE
+   ===================================================================== */
 function place(i,r0,c0){
   takeSnap();
   const p=pieces[i],m=p.m;
@@ -786,13 +942,14 @@ function resolveLines(){
   for(let r=0;r<N;r++){let f=true;for(let c=0;c<N;c++)if(!S.board[r*N+c]){f=false;break;}if(f)rows.push(r);}
   for(let c=0;c<N;c++){let f=true;for(let r=0;r<N;r++)if(!S.board[r*N+c]){f=false;break;}if(f)cols.push(c);}
   const L=rows.length+cols.length;
-  if(L===0){S.combo=0;endSurge();finishTurn();return;}
+  if(L===0){S.combo=0;resetMult();finishTurn(false);return;}
   S.combo++;
   const marks=new Set();
   rows.forEach(r=>{for(let c=0;c<N;c++)marks.add(r*N+c);});
   cols.forEach(c=>{for(let r=0;r<N;r++)marks.add(r*N+c);});
   marks.forEach(ix=>cells[ix].classList.add("clr"));
-  let pts=applySurge(10*L*L+(S.combo-1)*15*L);
+  let pts=(10*L*L+(S.combo-1)*15*L)*mult;
+  bumpMult();
   const bx=boardEl.getBoundingClientRect();
   floatPts(pts,bx.left+bx.width/2,bx.top+bx.height/2);
   setTimeout(()=>{
@@ -801,15 +958,15 @@ function resolveLines(){
     let empty=true;for(const v of S.board)if(v){empty=false;break;}
     if(empty){
       pts+=250;floatPts(250,bx.left+bx.width/2,bx.top+bx.height/2-42);
-      if(!surgeOn){startSurge();flash();}
+      bumpMult();flash();
     }
     addScore(pts);
-    finishTurn();
+    finishTurn(empty);
   },340);
 }
-function finishTurn(){
+function finishTurn(boardEmpty){
   if(mode!=="play")return;
-  if(!pieces[0]&&!pieces[1]&&!pieces[2])newSet();
+  if(boardEmpty||(!pieces[0]&&!pieces[1]&&!pieces[2]))newSet();
   else checkOver();
 }
 function addScore(n){S.score+=n;document.getElementById("score").textContent=S.score;}
@@ -826,7 +983,6 @@ function flash(){
 }
 function checkOver(){
   for(let i=0;i<3;i++)if(pieces[i]&&fits(pieces[i].m))return;
-  // automatic rescue: an undo in hand rewinds the fatal placement
   const ui=S.pups.indexOf("undo");
   if(ui>=0&&snap){popPup(ui);restoreSnap();flash();cancelPmode();return;}
   gameOver();
@@ -844,9 +1000,7 @@ function renderPups(){
         :`<div class="pup empty"></div>`;
   }
   pupsEl.innerHTML=h;
-  pupsEl.querySelectorAll(".pup[data-k]").forEach(e=>{
-    e.onclick=()=>usePup(+e.dataset.k);
-  });
+  pupsEl.querySelectorAll(".pup[data-k]").forEach(e=>{e.onclick=()=>usePup(+e.dataset.k);});
 }
 function popPup(i){
   const el=pupsEl.querySelector(`.pup[data-k="${i}"]`);
@@ -856,7 +1010,6 @@ function popPup(i){
 }
 function cancelPmode(){
   pmode=null;pIdx=-1;lineSel=null;clearGhost();
-  boardEl.classList.remove("pick");
   slots.forEach(s=>s.classList.remove("swaptarget"));
   renderPups();
 }
@@ -870,12 +1023,10 @@ function usePup(i){
   if(k==="wipe"){ popPup(i);doWipe(); return; }
   pmode=k;pIdx=i;
   if(k==="swap")slots.forEach((s,j)=>{if(pieces[j])s.classList.add("swaptarget");});
-  if(k==="line")boardEl.classList.add("pick");
   renderPups();
 }
 function useSwap(i){
   if(!pieces[i])return;
-  const idx=pIdx;
   const s=slots[i];
   s.classList.add("pop");
   setTimeout(()=>{
@@ -883,12 +1034,12 @@ function useSwap(i){
     s.classList.remove("pop");drawPiece(i);
     checkOver();
   },300);
-  popPup(idx);cancelPmode();
+  popPup(pIdx);cancelPmode();
 }
 function doWipe(){
   cancelPmode();
   const filled=[];for(let x=0;x<64;x++)if(S.board[x])filled.push(x);
-  if(!filled.length){finishTurn();return;}
+  if(!filled.length){finishTurn(true);return;}
   let last=0;
   filled.forEach(ix=>{
     const d=(Math.floor(ix/N)+(ix%N))*26;
@@ -897,10 +1048,10 @@ function doWipe(){
   });
   setTimeout(()=>{
     filled.forEach(ix=>{S.board[ix]=0;cells[ix].classList.remove("clr");});
-    paint();S.combo=0;endSurge();finishTurn();
+    paint();S.combo=0;
+    finishTurn(true);
   },last+360);
 }
-/* line targeting: drag horizontally for a row, vertically for a column */
 let lineSel=null;
 boardEl.addEventListener("pointerdown",e=>{
   if(pmode!=="line"||mode!=="play")return;
@@ -939,16 +1090,17 @@ function doClearLine(axis,idx){
   popPup(pIdx);cancelPmode();
   if(!marks.length)return;
   marks.forEach(ix=>cells[ix].classList.add("clr"));
-  let pts=applySurge(10);
+  let pts=10*mult;
+  bumpMult();
   const bx=boardEl.getBoundingClientRect();
   floatPts(pts,bx.left+bx.width/2,bx.top+bx.height/2);
   setTimeout(()=>{
     marks.forEach(ix=>{S.board[ix]=0;cells[ix].classList.remove("clr");});
     paint();
     let empty=true;for(const v of S.board)if(v){empty=false;break;}
-    if(empty&&!surgeOn){pts+=250;startSurge();flash();}
+    if(empty){pts+=250;bumpMult();flash();}
     addScore(pts);
-    finishTurn();
+    finishTurn(empty);
   },340);
 }
 
@@ -962,7 +1114,7 @@ const titleEl=document.getElementById("title"),
 function showTitle(){
   mode="title";
   clearTimeout(holdT);drag=null;cancelPmode();clearGhost();clearTray();
-  snap=null;surgeOn=false;mult=1;updSurge();
+  snap=null;mult=1;updMult();
   S.board=new Array(64).fill(0);
   const n=10+(Math.random()*8|0),used=new Set();
   while(used.size<n)used.add(Math.random()*64|0);
@@ -976,7 +1128,7 @@ function showTitle(){
 function newGame(){
   mode="play";
   titleEl.classList.remove("on");over.classList.remove("on");shop.classList.remove("on");
-  snap=null;surgeOn=false;mult=1;updSurge();cancelPmode();
+  snap=null;mult=1;updMult();cancelPmode();
   S.board=new Array(64).fill(0);S.score=0;S.combo=0;
   const n=7+(Math.random()*6|0),used=new Set();
   while(used.size<n)used.add(Math.random()*64|0);
@@ -987,9 +1139,8 @@ function newGame(){
 function gameOver(){
   mode="over";
   clearTimeout(holdT);drag=null;cancelPmode();clearGhost();
-  surgeOn=false;mult=1;updSurge();
+  mult=1;updMult();
   if(S.score>S.best)S.best=S.score;
-  // points convert to chips automatically, remainder carries over
   S.points+=S.score;
   const gained=Math.floor(S.points/PPT);
   S.tokens+=gained;S.points-=gained*PPT;
@@ -1132,6 +1283,67 @@ function buyBox(i){
   bx.items.forEach(k=>S.pups.push(k));
   save();updWallet();renderBoxes();renderPups();renderSheet();
 }
+
+/* =======================================================================
+   KEYWORDS
+   ===================================================================== */
+const _d=(s)=>{
+  let a=0x811c9dc5>>>0,b=(0x01000193^0x9e3779b9)>>>0;
+  for(let i=0;i<s.length;i++){
+    const c=s.charCodeAt(i);
+    a^=c;a=Math.imul(a,16777619)>>>0;
+    b=(b+c)>>>0;b=Math.imul(b^(b>>>7),2654435761)>>>0;
+  }
+  a=(a^(a>>>15))>>>0;b=(b^(b>>>13))>>>0;
+  return a.toString(16).padStart(8,"0")+b.toString(16).padStart(8,"0");
+};
+const _R={"8475c01535e12407":0,"5b750d7124a45da5":1,"61f6420f3a76bcc0":2};
+
+const kmod=document.getElementById("kmod"),kin=document.getElementById("kin"),
+      kmsg=document.getElementById("kmsg"),verEl=document.getElementById("ver");
+
+function kSay(txt,ok){
+  kmsg.textContent=txt;
+  kmsg.className="on "+(ok?"yes":"no");
+}
+function redeem(raw){
+  const k=_d("nf7:"+String(raw||"").toUpperCase().replace(/[^A-Z0-9]/g,""));
+  if(!(k in _R)){kSay("NOTHING HAPPENS",false);return;}
+  if(S.used.indexOf(k)>=0){kSay("ALREADY USED",false);return;}
+  const t=_R[k];
+  let m="";
+  if(t===0){S.tokens+=50*BLACK;m="+50 BLACK";}
+  else if(t===1){S.tokens+=100;m="+100 CHIPS";}
+  else{S.owned=[];for(let i=0;i<64;i++)S.owned.push(i);m="ALL 64 UNLOCKED";}
+  S.used.push(k);save();
+  updWallet();
+  if(shop.classList.contains("on")){renderShop();renderBoxes();}
+  kSay(m,true);flash();
+  kin.value="";
+  setTimeout(closeK,1100);
+}
+function openK(){
+  kmsg.className="";kmsg.textContent="";kin.value="";
+  kmod.classList.add("on");
+  setTimeout(()=>kin.focus(),60);
+}
+function closeK(){kmod.classList.remove("on");kin.blur();verEl.classList.remove("arm");}
+document.getElementById("kok").onclick=()=>redeem(kin.value);
+document.getElementById("kcancel").onclick=closeK;
+kin.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();redeem(kin.value);}});
+
+let verT=null;
+const vhot=document.getElementById("vhot");
+vhot.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  vhot.setPointerCapture(e.pointerId);
+  verEl.classList.add("arm");
+  verT=setTimeout(openK,900);
+});
+const verEnd=()=>{clearTimeout(verT);if(!kmod.classList.contains("on"))verEl.classList.remove("arm");};
+vhot.addEventListener("pointerup",verEnd);
+vhot.addEventListener("pointercancel",verEnd);
+vhot.addEventListener("pointerleave",verEnd);
 
 /* =======================================================================
    BOOT
